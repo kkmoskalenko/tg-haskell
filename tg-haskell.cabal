@@ -15,7 +15,10 @@ extra-source-files:  README.md
 
 executable tg-haskell
   main-is:             Main.hs
+  other-modules:       RSS 
   build-depends:       base >=4.12 && <4.13
+                     , HTTP
+                     , xml
   hs-source-dirs:      app
   default-language:    Haskell2010
 
