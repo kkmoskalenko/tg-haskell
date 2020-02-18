@@ -19,6 +19,8 @@ executable tg-haskell
   build-depends:       base >=4.12 && <4.13
                      , HTTP
                      , xml
+                     , text
+                     , html-entities
   hs-source-dirs:      app
   default-language:    Haskell2010
 
