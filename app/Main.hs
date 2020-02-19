@@ -1,32 +1,35 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
-import Network.HTTP
+import Network.HTTP.Req
 import Text.XML.Light (parseXML)
 
-import Control.Monad
-import Data.Maybe
-import System.Exit
-import System.IO
+import Control.Monad (when)
+import Control.Monad.IO.Class (liftIO)
+import Data.Maybe (isNothing, fromJust)
+import System.Exit (exitFailure)
 
-import Data.Text (pack)
+import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Lazy.Builder (toLazyText)
 import HTMLEntities.Decoder (htmlEncodedText)
 
 import RSS
 
 
-feedUrl = "feed://fit.nsu.ru/component/ninjarsssyndicator/?feed_id=1&format=raw"
+-- http://fit.nsu.ru/component/ninjarsssyndicator?feed_id=1&format=raw
+feedUrl = http "fit.nsu.ru" /: "component" /: "ninjarsssyndicator"
+feedQuery = "feed_id" =: (1 :: Int) <> "format" =: ("raw" :: String)
 
-main = do
+
+main = runReq defaultHttpConfig $ do
     -- Получаем данные RSS-ленты
-    feed' <- simpleHTTP (getRequest feedUrl) >>= getResponseBody
-    let feed = toLazyText $ htmlEncodedText $ pack feed'
+    res <- req GET feedUrl NoReqBody bsResponse feedQuery
+    let feed = toLazyText $ htmlEncodedText $ decodeUtf8 (responseBody res)
 
     -- Находим корневой тег "rss", в противном случае завершаем программу
     let root = findRoot $ parseXML feed
-    when (isNothing root) $ do putStrLn "Root RSS node not found!" ; exitFailure
+    when (isNothing root) $ liftIO $ do putStrLn "Root RSS node not found!" ; exitFailure
 
     let channels = parseChannels (fromJust root)
-    
-    hSetEncoding stdout latin1
-    putStrLn $ show (head channels)
+    liftIO $ putStrLn $ show (head channels)

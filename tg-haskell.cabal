@@ -17,7 +17,7 @@ executable tg-haskell
   main-is:             Main.hs
   other-modules:       RSS 
   build-depends:       base >=4.12 && <4.13
-                     , HTTP
+                     , req
                      , xml
                      , text
                      , html-entities
