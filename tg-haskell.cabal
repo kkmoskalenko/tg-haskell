@@ -15,12 +15,14 @@ extra-source-files:  README.md
 
 executable tg-haskell
   main-is:             Main.hs
-  other-modules:       RSS 
+  other-modules:       RSS
+                     , Telegram
   build-depends:       base >=4.12 && <4.13
                      , req
                      , xml
                      , text
                      , html-entities
+                     , aeson
   hs-source-dirs:      app
   default-language:    Haskell2010
 
