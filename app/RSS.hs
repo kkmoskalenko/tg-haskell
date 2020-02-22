@@ -5,12 +5,14 @@ module RSS
 
 import Data.Maybe (fromJust)
 import Data.List (find)
+import Data.Time
 import Text.XML.Light
 
 
 data Item = Item {
     itTitle :: String,
-    itLink :: String
+    itLink :: String,
+    itPubDate :: UTCTime
 }
 
 data Channel = Channel {
@@ -20,7 +22,7 @@ data Channel = Channel {
 }
 
 instance Show Item where
-    show (Item title link) = title ++ "\n" ++ link ++ "\n"
+    show (Item title link _) = title ++ "\n" ++ link ++ "\n"
 
 instance Show Channel where
     show (Channel title description items) =
@@ -39,9 +41,10 @@ prop node name = strContent . fromJust $ findChild (QName name Nothing Nothing) 
 
 
 parseItem :: Element -> Item
-parseItem node = Item { itTitle = title, itLink = link }
+parseItem node = Item { itTitle = title, itLink = link, itPubDate = pubDate }
     where title = prop node "title"
           link = prop node "link"
+          pubDate = parseTimeOrError False defaultTimeLocale rfc822DateFormat (prop node "pubDate")
 
 
 parseChannel :: Element -> Channel

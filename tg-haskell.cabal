@@ -23,6 +23,7 @@ executable tg-haskell
                      , text
                      , html-entities
                      , aeson
+                     , time
   hs-source-dirs:      app
   default-language:    Haskell2010
 
