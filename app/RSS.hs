@@ -1,7 +1,4 @@
-module RSS
-( findRoot
-, parseChannels
-) where
+module RSS where
 
 import Data.Maybe (fromJust)
 import Data.List (find)
@@ -55,4 +52,4 @@ parseChannel node = Channel { chTitle = title, chDescription = desc, chItems = i
 
 
 parseChannels :: Element -> [Channel]
-parseChannels root = map parseChannel $ findChildren (QName "channel" Nothing Nothing) root
+parseChannels node = map parseChannel $ findChildren (QName "channel" Nothing Nothing) node
