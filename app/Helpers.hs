@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Helpers (fetchFeed) where
+module Helpers
+( fetchFeed
+, getLastPollingTime
+, updateLastPollingTime
+) where
 
 import Network.HTTP.Req
 import Text.XML.Light (parseXML)
@@ -13,6 +17,11 @@ import System.Exit (exitFailure)
 import Data.Text.Encoding (decodeUtf8)
 import Data.Text.Lazy.Builder (toLazyText)
 import HTMLEntities.Decoder (htmlEncodedText)
+
+import Data.Time
+import Data.Time.Clock.System
+import Data.Int (Int64)
+import Control.Exception (catch, SomeException)
 
 import RSS
 
@@ -33,3 +42,25 @@ fetchFeed = do
     when (isNothing root) $ liftIO $ do putStrLn "Root RSS node not found!" ; exitFailure
 
     return $ parseChannels (fromJust root)
+
+
+lastPollingTimeFilePath = "lastPollingTime.txt"
+
+getLastPollingTime :: IO UTCTime
+getLastPollingTime = catch funcBody handler where
+    funcBody = do
+        contents <- readFile lastPollingTimeFilePath
+        let seconds = read contents :: Int64
+        let systemTime = MkSystemTime
+              { systemSeconds = seconds
+              , systemNanoseconds = 0 }
+        return $ systemToUTCTime systemTime
+    handler :: SomeException -> IO UTCTime
+    handler _ = do
+        systemTime <- getSystemTime
+        return $ systemToUTCTime systemTime
+
+updateLastPollingTime :: IO ()
+updateLastPollingTime = do
+    systemTime <- getSystemTime
+    writeFile lastPollingTimeFilePath (show $ systemSeconds systemTime)
