@@ -1,9 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns#-}
 
 module Helpers
-( fetchFeed
-, getLastPollingTime
-, updateLastPollingTime
+( initBot
+, sendItem
+, relevantNews
+, delayPoll
 ) where
 
 import Network.HTTP.Req
@@ -11,6 +13,7 @@ import Text.XML.Light (parseXML)
 
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
+import Control.Concurrent (threadDelay)
 import Data.Maybe (isNothing, fromJust)
 import System.Exit (exitFailure)
 
@@ -24,6 +27,8 @@ import Data.Int (Int64)
 import Control.Exception (catch, SomeException)
 
 import RSS
+import Telegram
+import Config
 
 
 -- http://fit.nsu.ru/component/ninjarsssyndicator?feed_id=1&format=raw
@@ -64,3 +69,29 @@ updateLastPollingTime :: IO ()
 updateLastPollingTime = do
     systemTime <- getSystemTime
     writeFile lastPollingTimeFilePath (show $ systemSeconds systemTime)
+
+
+initBot :: Req Bot
+initBot = do
+    let bot = Bot botAuthToken
+    success <- testToken bot
+    when (not success) $ liftIO $ do putStrLn "Invalid bot's auth token!" ; exitFailure
+    return bot
+
+
+sendItem :: Bot -> Item -> Req Bool
+sendItem bot x = sendMessage bot chatId (show x)
+
+
+relevantNews :: Req [Item]
+relevantNews = do
+    !lastPollingTime <- liftIO $ getLastPollingTime
+    channels <- fetchFeed
+    liftIO $ updateLastPollingTime
+    
+    let items = chItems $ head channels
+    return $ filter (\x -> (itPubDate x) > lastPollingTime) items
+
+
+delayPoll :: Req ()
+delayPoll = liftIO $ threadDelay (pollingDelay * 1000000)
