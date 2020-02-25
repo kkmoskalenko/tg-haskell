@@ -80,7 +80,7 @@ initBot = do
 
 
 sendItem :: Bot -> Item -> Req Bool
-sendItem bot x = sendMessage bot chatId (show x)
+sendItem bot x = sendMessage bot chatId (showMd x)
 
 
 relevantNews :: Req [Item]

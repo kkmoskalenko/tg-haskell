@@ -6,6 +6,9 @@ import Data.Time
 import Text.XML.Light
 
 
+class ShowMarkdown a where
+    showMd :: a -> String
+
 data Item = Item {
     itTitle :: String,
     itLink :: String,
@@ -21,11 +24,14 @@ data Channel = Channel {
 instance Show Item where
     show (Item title link _) = title ++ "\n" ++ link ++ "\n"
 
+instance ShowMarkdown Item where
+    showMd (Item title link _) = "*" ++ title ++ "*\n\n" ++ link
+
 instance Show Channel where
     show (Channel title description items) =
-        fullTitle ++ "\n" ++ content where
+        fullTitle ++ "\n" ++ itemsCount where
             fullTitle = title ++ " - " ++ description
-            content = unlines $ map show items
+            itemsCount = (show $ length items) ++ " item(s) available."
 
 
 findRoot :: [Content] -> Maybe Element
