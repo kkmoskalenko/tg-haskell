@@ -6,6 +6,7 @@ module Helpers
 , sendItem
 , relevantNews
 , delayPoll
+, printLog
 ) where
 
 import Network.HTTP.Req
@@ -95,3 +96,9 @@ relevantNews = do
 
 delayPoll :: Req ()
 delayPoll = liftIO $ threadDelay (pollingDelay * 1000000)
+
+
+printLog :: String -> Req ()
+printLog str = do
+    time <- liftIO $ getCurrentTime
+    liftIO $ putStrLn $ "[" ++ (show time) ++ "] " ++ str

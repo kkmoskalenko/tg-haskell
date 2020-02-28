@@ -8,6 +8,8 @@ import Helpers
 
 startPolling sendFunc = forever $ do
     news <- relevantNews
+    printLog $ (show $ length news)
+        ++ " new item(s) fetched."
     mapM sendFunc news
     delayPoll
 
